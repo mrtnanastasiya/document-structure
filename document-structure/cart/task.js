@@ -8,7 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const productImage = product.querySelector('.product__image').getAttribute('src');
         const productCount = product.querySelector('.product__count');
         let productQuantity = parseInt(product.querySelector('.product__quantity-value').textContent);
-        
+        const removeButton = document.createElement('button');
+            removeButton.textContent = 'Удалить'; 
+
         // Проверяем, есть ли уже такой товар в корзине
         const existingCartItem = document.querySelector(`.cart__product[data-id="${productId}"]`);
         
@@ -16,33 +18,26 @@ document.addEventListener('DOMContentLoaded', () => {
             let existingQuantity = parseInt(existingCartItem.querySelector('.cart__product-count').textContent);
             existingCartItem.querySelector('.cart__product-count').textContent = existingQuantity + productQuantity;
         } else {
-            const cartProduct = document.createElement('div');
-            cartProduct.classList.add('cart__product');
-            cartProduct.setAttribute('data-id', productId);
-            
-            const cartProductImage = document.createElement('img');
-            cartProductImage.classList.add('cart__product-image');
-            cartProductImage.src = productImage;
-            
-            const cartProductTitle = document.createElement('div');
-            cartProductTitle.textContent = productTitle;
+            const cartProductTemplate = `
+                <div class="cart__product" data-id="${productId}">
+                <img class="cart__product-image" src="${productImage}">
+                <div class="cart__product-count">${productQuantity}</div>
+                <button class="remove-button">Удалить</button>
+            </div>
+        `;
 
-            const cartProductCount = document.createElement('div');
-            cartProductCount.classList.add('cart__product-count');
-            cartProductCount.textContent = productQuantity;
-            
-            const removeButton = document.createElement('button');
-            removeButton.textContent = 'Удалить';
-            
-            removeButton.addEventListener('click', () => {
-                cartProduct.remove();
-            });
+           // Создаем элемент на основе шаблонного кода
+           const cartProductElement = document.createElement('div');
+           cartProductElement.innerHTML = cartProductTemplate;
 
-            cartProduct.appendChild(cartProductImage);
-            cartProduct.appendChild(cartProductTitle);
-            cartProduct.appendChild(cartProductCount);
-            cartProduct.appendChild(removeButton);
-            cartProducts.appendChild(cartProduct);
+           const removeButton = cartProductElement.querySelector('.remove-button');
+           removeButton.addEventListener('click', (e) => {
+               e.preventDefault();
+
+               cartProductElement.remove();
+           });
+
+            cartProducts.insertAdjacentElement('afterbegin', cartProductElement);
         }
     };
 
@@ -53,14 +48,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const decButton = control.querySelector('.product__quantity-control_dec');
         const incButton = control.querySelector('.product__quantity-control_inc');
 
-        decButton.addEventListener('click', () => {
+        decButton.addEventListener('click', (e) => {
+            event.preventDefault();
+
             let currentValue = parseInt(quantityValue.textContent);
             if (currentValue > 1) {
                 quantityValue.textContent = currentValue - 1;
             }
         });
 
-        incButton.addEventListener('click', () => {
+        incButton.addEventListener('click', (e) => {
+            event.preventDefault();
+
             let currentValue = parseInt(quantityValue.textContent);
             quantityValue.textContent = currentValue + 1;
         });
@@ -70,6 +69,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const addButtons = document.querySelectorAll('.product__add');
     addButtons.forEach((button) => {
         button.addEventListener('click', (event) => {
+            event.preventDefault();
+
             const product = button.closest('.product');
             addToCart(product);
         });
