@@ -1,65 +1,44 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const taskInput = document.getElementById('task__input');
-    const addButton = document.getElementById('tasks__add');
-    const taskList = document.getElementById('tasks__list');
+const tasksList = document.getElementById('tasks__list');
+const taskInput = document.getElementById('task__input');
 
-    let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
 
-    const renderTasks = () => {
-        taskList.innerHTML = ''; // Очищаем список задач перед отображением
+function renderTasks() {
+    tasksList.innerHTML = ''; // Очищаем список задач 
 
-        tasks.forEach((task, index) => {
-            const taskElement = document.createElement('div');
-            taskElement.classList.add('task');
-            
-            const taskTitle = document.createElement('div');
-            taskTitle.classList.add('task__title');
-            taskTitle.textContent = task;
-            
-            const removeButton = document.createElement('a');
-            removeButton.href = '#';
-            removeButton.classList.add('task__remove');
-            removeButton.innerHTML = '&times;';
-            
-            removeButton.addEventListener('click', (event) => {
-                event.preventDefault();
-                const taskElement = event.target.parentNode;
-                const taskIndex = Array.from(taskElement.parentNode.children).indexOf(taskElement);
-
-                tasks.splice(taskIndex, 1);
-                localStorage.setItem('tasks', JSON.stringify(tasks));
-                renderTasks();
-            });
-
-            taskElement.appendChild(taskTitle);
-            taskElement.appendChild(removeButton);
-            taskList.appendChild(taskElement);
-        });
-    };
-
-    renderTasks();
-
-    // Добавление задачи по нажатию клавиши Enter
-    taskInput.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter') {
-            const newTask = taskInput.value.trim();
-            if (newTask) {
-                tasks.push(newTask);
-                localStorage.setItem('tasks', JSON.stringify(tasks));
-                renderTasks();
-                taskInput.value = '';
-            }
-        }
+    tasks.forEach((task, index) => {
+        const taskTemplate = `
+            <div class="task">
+                <div class="task__title">${task}</div>
+                <a href="#" class="task__remove" data-index="${index}">&times;</a>
+            </div>
+        `;
+        tasksList.insertAdjacentHTML('afterbegin', taskTemplate);
     });
 
-    // Добавление задачи при клике на кнопку "Добавить"
-    addButton.addEventListener('click', () => {
-        const newTask = taskInput.value.trim();
-        if (newTask) {
-            tasks.push(newTask);
+    // Добавляем обработчик события только на добавленные кнопки удаления
+    document.querySelectorAll('.task__remove').forEach(button => {
+        button.addEventListener('click', function(event) {
+            event.preventDefault();
+            
+            const index = this.getAttribute('data-index');
+            tasks.splice(index, 1);
             localStorage.setItem('tasks', JSON.stringify(tasks));
             renderTasks();
-            taskInput.value = '';
-        }
+        });
     });
+}
+
+renderTasks();
+
+document.getElementById('tasks__form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    
+    const title = taskInput.value.trim();
+    if (title !== '') {
+        tasks.unshift(title);
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+        renderTasks();
+        taskInput.value = '';
+    }
 });
